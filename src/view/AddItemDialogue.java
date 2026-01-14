@@ -4,20 +4,61 @@
  */
 package view;
 
+import controller.ItemControl;
+import model.ItemModel;
+import java.util.ArrayList;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
+
 /**
+ * a
  *
  * @author sudip
  */
 public class AddItemDialogue extends javax.swing.JDialog {
-    
+
+    // --- VARIABLES TO ADD ---
+    private ItemControl controller;
+    private ArrayList<ItemModel> cartList;
+    private boolean itemAdded = false;
+    // ------------------------
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AddItemDialogue.class.getName());
 
     /**
      * Creates new form AddItemDialogue
      */
-    public AddItemDialogue(java.awt.Frame parent, boolean modal) {
+    public AddItemDialogue(java.awt.Frame parent, boolean modal, ItemControl controller, ArrayList<ItemModel> cartList) {
         super(parent, modal);
         initComponents();
+
+        // Save the data to use later
+        this.controller = controller;
+        this.cartList = cartList;
+
+        // Fill the dropdown box immediately
+        populateItemCombo();
+    }
+
+    private void populateItemCombo() {
+        if (controller == null) {
+            return;
+        }
+
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+        for (ItemModel item : controller.getClothList()) {
+            // Only show items that are in stock
+            if (item.getQuantity() > 0) {
+                // Format: "ID - Name - Size ($Price)"
+                String display = item.getItemId() + " - " + item.getName() + " - " + item.getCategory() + " ($" + item.getPrice() + ")";
+                model.addElement(display);
+            }
+        }
+        jComboBox1.setModel(model);
+    }
+
+    public boolean isItemAdded() {
+        return itemAdded;
     }
 
     /**
@@ -77,6 +118,11 @@ public class AddItemDialogue extends javax.swing.JDialog {
         jToggleButton2.setBackground(new java.awt.Color(129, 121, 121));
         jToggleButton2.setFont(new java.awt.Font("Telugu MN", 1, 18)); // NOI18N
         jToggleButton2.setText("Add To Cart");
+        jToggleButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -130,6 +176,8 @@ public class AddItemDialogue extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
+
+        this.dispose(); // Close the window
         // TODO add your handling code here:
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
@@ -137,42 +185,64 @@ public class AddItemDialogue extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+    private void jToggleButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton2ActionPerformed
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
+            // 1. Check if an item is selected
+            String selectedStr = (String) jComboBox1.getSelectedItem();
+            if (selectedStr == null) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Please select an item.");
+                return;
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                AddItemDialogue dialog = new AddItemDialogue(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
+            // 2. Extract ID from the string (It's the number before the " - ")
+            int id = Integer.parseInt(selectedStr.split(" - ")[0]);
+
+            // 3. Get Quantity from TextField (jTextField1)
+            String qtyStr = jTextField1.getText().trim();
+
+            if (qtyStr.isEmpty()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Please enter a quantity.");
+                return;
             }
-        });
-    }
+
+            int qty = Integer.parseInt(qtyStr);
+
+            // 4. Validate Stock
+            ItemModel stockItem = controller.findById(id);
+
+            if (qty <= 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Quantity must be greater than 0.");
+                return;
+            }
+
+            if (qty > stockItem.getQuantity()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Not enough stock! Available: " + stockItem.getQuantity());
+                return;
+            }
+
+            // 5. Add to Cart (Create a COPY with the bought quantity)
+            ItemModel cartItem = new ItemModel(
+                    stockItem.getItemId(),
+                    stockItem.getName(),
+                    stockItem.getCategory(),
+                    qty, // The Quantity the user is BUYING
+                    stockItem.getPrice()
+            );
+
+            cartList.add(cartItem);
+            itemAdded = true;
+
+            // 6. Close the window
+            this.dispose();
+
+        } catch (NumberFormatException e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Quantity must be a valid number.");
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButton2ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> jComboBox1;

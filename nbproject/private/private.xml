@@ -3,10 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/Users/sudip/Desktop/DSA%20coursework/DSA-Coursework-Clothing-Brand-Stock-Management/src/view/login.java</file>
-            <file>file:/Users/sudip/Desktop/DSA%20coursework/DSA-Coursework-Clothing-Brand-Stock-Management/src/view/AdminDashboard.java</file>
-            <file>file:/Users/sudip/Desktop/DSA%20coursework/DSA-Coursework-Clothing-Brand-Stock-Management/src/controller/ItemControl.java</file>
-            <file>file:/Users/sudip/Desktop/DSA%20coursework/DSA-Coursework-Clothing-Brand-Stock-Management/src/model/ItemModel.java</file>
+            <file>file:/D:/NotMy/Sudip/DSA-Coursework-Clothing-Brand-Stock-Management/src/controller/ItemControl.java</file>
+            <file>file:/D:/NotMy/Sudip/DSA-Coursework-Clothing-Brand-Stock-Management/src/model/ItemModel.java</file>
+            <file>file:/D:/NotMy/Sudip/DSA-Coursework-Clothing-Brand-Stock-Management/src/view/AddItemDialogue.java</file>
+            <file>file:/D:/NotMy/Sudip/DSA-Coursework-Clothing-Brand-Stock-Management/src/view/AdminDashboard.java</file>
+            <file>file:/D:/NotMy/Sudip/DSA-Coursework-Clothing-Brand-Stock-Management/src/model/SaleModel.java</file>
+            <file>file:/D:/NotMy/Sudip/DSA-Coursework-Clothing-Brand-Stock-Management/src/controller/SalesQueue.java</file>
+            <file>file:/D:/NotMy/Sudip/DSA-Coursework-Clothing-Brand-Stock-Management/src/controller/SalesStack.java</file>
+            <file>file:/D:/NotMy/Sudip/DSA-Coursework-Clothing-Brand-Stock-Management/src/view/login.java</file>
         </group>
     </open-files>
 </project-private>

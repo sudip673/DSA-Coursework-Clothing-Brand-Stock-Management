@@ -9,6 +9,7 @@ import model.ItemModel;
 import controller.ItemControl;
 import javax.swing.table.DefaultTableModel;
 import java.util.LinkedList;
+import java.util.ArrayList;
 
 /**
  *
@@ -18,14 +19,82 @@ public class AdminDashboard extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AdminDashboard.class.getName());
 
-    ItemControl controller = new ItemControl();
+    private ItemControl controller;
+    private ArrayList<ItemModel> currentCart; // This is the list causing you issues
 
     /**
      * Creates new form AdminDashboard
      */
     public AdminDashboard() {
         initComponents();
-        loadTable();
+
+        // 2. Initialize them INSIDE the constructor
+        controller = new ItemControl();
+        currentCart = new ArrayList<>(); // Initialize the list!
+
+        loadTable(); // Loads main inventory
+    }
+
+    // --- 1. REFRESH CART (Sales Tab - jTable5) ---
+    public void refreshCartTable() {
+        // Validate that cart is not null before using it
+        if (currentCart == null) {
+            currentCart = new ArrayList<>(); // Fix it if it's null
+        }
+
+        DefaultTableModel model = (DefaultTableModel) jTable5.getModel();
+        model.setRowCount(0);
+
+        for (ItemModel item : currentCart) {
+            model.addRow(new Object[]{
+                item.getItemId(),
+                item.getName(),
+                item.getQuantity(),
+                item.getPrice(),
+                item.getCategory()
+            });
+        }
+    }
+
+    // --- 2. REFRESH PENDING QUEUE (Pending Sales Tab - jTable4) ---
+    public void refreshPendingTable() {
+        DefaultTableModel model = (DefaultTableModel) jTable4.getModel();
+        model.setRowCount(0);
+
+        // Get items from Manual Queue
+        model.SaleModel[] queueItems = controller.getPendingQueue().getItems();
+
+        int qNum = 1;
+        for (model.SaleModel sale : queueItems) {
+            if (sale != null) {
+                model.addRow(new Object[]{
+                    qNum++,
+                    sale.getCustomerName(),
+                    sale.getTotalAmount()
+                });
+            }
+        }
+    }
+
+    // --- 3. REFRESH HISTORY STACK (History Tab - jTable6) ---
+    public void refreshHistoryTable() {
+        DefaultTableModel model = (DefaultTableModel) jTable6.getModel();
+        model.setRowCount(0);
+
+        // Get items from Manual Stack
+        model.SaleModel[] stackItems = controller.getSalesHistory().getItems();
+
+        // Loop backwards (LIFO)
+        for (int i = stackItems.length - 1; i >= 0; i--) {
+            model.SaleModel sale = stackItems[i];
+            if (sale != null) {
+                model.addRow(new Object[]{
+                    i + 1, // Sale ID
+                    sale.getCustomerName(), // Assuming Customer ID column stores Name
+                    sale.getTotalAmount()
+                });
+            }
+        }
     }
 
     public void loadTable() {
@@ -301,7 +370,7 @@ public class AdminDashboard extends javax.swing.JFrame {
             }
         });
         jPanel1.add(jTextField1);
-        jTextField1.setBounds(140, 190, 170, 23);
+        jTextField1.setBounds(140, 190, 170, 22);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -329,7 +398,7 @@ public class AdminDashboard extends javax.swing.JFrame {
             }
         });
         jPanel1.add(jButton5);
-        jButton5.setBounds(480, 190, 150, 25);
+        jButton5.setBounds(480, 190, 150, 31);
 
         jLabel16.setFont(new java.awt.Font("STSong", 3, 40)); // NOI18N
         jLabel16.setText("Welcome To Dashboard");
@@ -782,8 +851,13 @@ public class AdminDashboard extends javax.swing.JFrame {
         jPanel17.setBounds(110, 60, 528, 180);
 
         jToggleButton1.setText("Add Item");
+        jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton1ActionPerformed(evt);
+            }
+        });
         jPanel16.add(jToggleButton1);
-        jToggleButton1.setBounds(340, 260, 83, 23);
+        jToggleButton1.setBounds(340, 260, 79, 23);
 
         jToggleButton2.setText("Make Sales");
         jToggleButton2.addActionListener(new java.awt.event.ActionListener() {
@@ -792,7 +866,7 @@ public class AdminDashboard extends javax.swing.JFrame {
             }
         });
         jPanel16.add(jToggleButton2);
-        jToggleButton2.setBounds(360, 520, 98, 23);
+        jToggleButton2.setBounds(360, 520, 89, 23);
 
         jTable5.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -825,7 +899,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         jPanel18Layout.setVerticalGroup(
             jPanel18Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel18Layout.createSequentialGroup()
-                .addContainerGap(11, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel24)
                 .addContainerGap())
         );
@@ -836,7 +910,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         jLabel25.setFont(new java.awt.Font("Telugu MN", 1, 20)); // NOI18N
         jLabel25.setText("CART");
         jPanel16.add(jLabel25);
-        jLabel25.setBounds(130, 310, 56, 25);
+        jLabel25.setBounds(130, 310, 54, 26);
 
         javax.swing.GroupLayout jPanel19Layout = new javax.swing.GroupLayout(jPanel19);
         jPanel19.setLayout(jPanel19Layout);
@@ -883,6 +957,11 @@ public class AdminDashboard extends javax.swing.JFrame {
         jToggleButton3.setBackground(new java.awt.Color(204, 204, 204));
         jToggleButton3.setForeground(new java.awt.Color(87, 84, 84));
         jToggleButton3.setText("Cancel Sale");
+        jToggleButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton3ActionPerformed(evt);
+            }
+        });
 
         jToggleButton4.setBackground(new java.awt.Color(204, 204, 204));
         jToggleButton4.setForeground(new java.awt.Color(58, 58, 58));
@@ -964,6 +1043,11 @@ public class AdminDashboard extends javax.swing.JFrame {
         jToggleButton5.setFont(new java.awt.Font("Sinhala MN", 1, 18)); // NOI18N
         jToggleButton5.setForeground(new java.awt.Color(255, 255, 255));
         jToggleButton5.setText("Undo Last Sale");
+        jToggleButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton5ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel23Layout = new javax.swing.GroupLayout(jPanel23);
         jPanel23.setLayout(jPanel23Layout);
@@ -1074,54 +1158,53 @@ public class AdminDashboard extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-                                           
-    try {
-        // 1. INPUT VALIDATION: Check if fields are empty
-        if (txtId.getText().isEmpty() || txtName.getText().isEmpty() || 
-            txtCategory.getText().isEmpty() || txtQty.getText().isEmpty() || 
-            txtPrice.getText().isEmpty()) {
-            
-            javax.swing.JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Validation Error", javax.swing.JOptionPane.WARNING_MESSAGE);
-            return; // Stop execution
+
+        try {
+            // 1. INPUT VALIDATION: Check if fields are empty
+            if (txtId.getText().isEmpty() || txtName.getText().isEmpty()
+                    || txtCategory.getText().isEmpty() || txtQty.getText().isEmpty()
+                    || txtPrice.getText().isEmpty()) {
+
+                javax.swing.JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Validation Error", javax.swing.JOptionPane.WARNING_MESSAGE);
+                return; // Stop execution
+            }
+
+            // 2. PARSE DATA: Convert String inputs to correct types
+            int id = Integer.parseInt(txtId.getText());
+            String name = txtName.getText();
+            String category = txtCategory.getText();
+            int quantity = Integer.parseInt(txtQty.getText());
+            double price = Double.parseDouble(txtPrice.getText());
+
+            // 3. CREATE MODEL: Create the object
+            ItemModel newItem = new ItemModel(id, name, category, quantity, price);
+
+            // 4. CALL CONTROLLER: Try to add the item
+            boolean isAdded = controller.addItem(newItem);
+
+            // 5. CHECK RESULT & PROVIDE FEEDBACK
+            if (isAdded) {
+                // SUCCESS: Item added uniquely
+                javax.swing.JOptionPane.showMessageDialog(this, "Item Added Successfully!");
+
+                // Refresh the table to show the new data
+                loadTable();
+
+            } else {
+                // FAILURE: ID Collision detected
+                javax.swing.JOptionPane.showMessageDialog(this,
+                        "Item ID " + id + " already exists!\nPlease use a unique ID.",
+                        "ID Error",
+                        javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (NumberFormatException e) {
+            // FAILURE: User typed text into a number field (ID, Price, or Quantity)
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Please enter valid numbers for ID, Quantity, and Price.",
+                    "Input Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
         }
-
-        // 2. PARSE DATA: Convert String inputs to correct types
-        int id = Integer.parseInt(txtId.getText());
-        String name = txtName.getText();
-        String category = txtCategory.getText();
-        int quantity = Integer.parseInt(txtQty.getText());
-        double price = Double.parseDouble(txtPrice.getText());
-        
-        // 3. CREATE MODEL: Create the object
-        ItemModel newItem = new ItemModel(id, name, category, quantity, price);
-
-        // 4. CALL CONTROLLER: Try to add the item
-        boolean isAdded = controller.addItem(newItem);
-
-        // 5. CHECK RESULT & PROVIDE FEEDBACK
-        if (isAdded) {
-            // SUCCESS: Item added uniquely
-            javax.swing.JOptionPane.showMessageDialog(this, "Item Added Successfully!");
-            
-            
-            // Refresh the table to show the new data
-            loadTable(); 
-            
-        } else {
-            // FAILURE: ID Collision detected
-            javax.swing.JOptionPane.showMessageDialog(this, 
-                "Item ID " + id + " already exists!\nPlease use a unique ID.", 
-                "ID Error", 
-                javax.swing.JOptionPane.ERROR_MESSAGE);
-        }
-
-    } catch (NumberFormatException e) {
-        // FAILURE: User typed text into a number field (ID, Price, or Quantity)
-        javax.swing.JOptionPane.showMessageDialog(this, 
-            "Please enter valid numbers for ID, Quantity, and Price.", 
-            "Input Error", 
-            javax.swing.JOptionPane.ERROR_MESSAGE);
-    }
 
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -1256,7 +1339,7 @@ public class AdminDashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextField3ActionPerformed
 
     private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
-int response = javax.swing.JOptionPane.showConfirmDialog(this,
+        int response = javax.swing.JOptionPane.showConfirmDialog(this,
                 "???",
                 "Confirm Logout",
                 javax.swing.JOptionPane.YES_NO_OPTION);
@@ -1271,12 +1354,98 @@ int response = javax.swing.JOptionPane.showConfirmDialog(this,
     }//GEN-LAST:event_jButton8ActionPerformed
 
     private void jToggleButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton2ActionPerformed
+
+        // 1. Get Customer Details (Check variable names: jTextField4 is Name, jTextField5 is Phone)
+        String name = jTextField4.getText().trim();
+        String phone = jTextField5.getText().trim();
+
+        // 2. Validate
+        if (name.isEmpty() || phone.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter customer details.");
+            return;
+        }
+        if (currentCart.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Cart is empty!");
+            return;
+        }
+
+        // 3. Create & Queue Sale
+        model.SaleModel newSale = new model.SaleModel(name, phone, currentCart);
+        controller.addSaleToQueue(newSale);
+
+        // 4. Success & Cleanup
+        JOptionPane.showMessageDialog(this, "Order sent to Pending Queue!");
+        currentCart.clear();
+        refreshCartTable();
+        jTextField4.setText(""); // Clear Name
+        jTextField5.setText(""); // Clear Phone
+
+        // 5. Update Pending Tab
+        refreshPendingTable();
         // TODO add your handling code here:
     }//GEN-LAST:event_jToggleButton2ActionPerformed
 
     private void jToggleButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton4ActionPerformed
+
+        // 1. Confirm Logic
+        model.SaleModel sale = controller.confirmNextSale();
+
+        if (sale != null) {
+            JOptionPane.showMessageDialog(this, "Sale Confirmed for: " + sale.getCustomerName());
+
+            // 2. Refresh ALL tables
+            refreshPendingTable(); // Remove from Queue
+            refreshHistoryTable(); // Add to History
+            loadTable(); // Update Inventory (Stock reduced)
+
+        } else {
+            JOptionPane.showMessageDialog(this, "No pending orders.");
+        }
         // TODO add your handling code here:
     }//GEN-LAST:event_jToggleButton4ActionPerformed
+
+    private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
+        // Open the dialog
+        view.AddItemDialogue dialog = new view.AddItemDialogue(this, true, controller, currentCart);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+
+        // Refresh cart table if item was added
+        if (dialog.isItemAdded()) {
+            refreshCartTable();
+        }
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButton1ActionPerformed
+
+    private void jToggleButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton3ActionPerformed
+
+        if (controller.getPendingQueue().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nothing to cancel.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Cancel this order?");
+        if (confirm == JOptionPane.YES_OPTION) {
+            controller.cancelNextSale();
+            refreshPendingTable();
+            JOptionPane.showMessageDialog(this, "Order Cancelled.");
+        }
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButton3ActionPerformed
+
+    private void jToggleButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton5ActionPerformed
+
+        model.SaleModel undone = controller.undoLastSale();
+
+        if (undone != null) {
+            JOptionPane.showMessageDialog(this, "Undo Successful. Stock Restored.");
+            refreshHistoryTable();
+            loadTable(); // Update Inventory (Stock increased)
+        } else {
+            JOptionPane.showMessageDialog(this, "Nothing to undo.");
+        }
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jToggleButton5ActionPerformed
 
     /**
      * @param args the command line arguments
