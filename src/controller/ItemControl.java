@@ -164,4 +164,132 @@ public class ItemControl {
     public SalesStack getSalesHistory() {
         return salesHistory;
     }
+    // ==========================================
+    //       PART D: ALGORITHMS (Bubble Sort & Binary Search)
+    // ==========================================
+
+
+    public void bubbleSort(String criteria, boolean isAscending) {
+        if (clothList.isEmpty()) {
+            return;
+        }
+
+        int n = clothList.size();
+
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+
+                ItemModel item1 = clothList.get(j);
+                ItemModel item2 = clothList.get(j + 1);
+                boolean shouldSwap = false;
+
+                // 1. Sort by PRICE (For Sort Button)
+                if (criteria.equalsIgnoreCase("price")) {
+                    if (isAscending) {
+                        shouldSwap = item1.getPrice() > item2.getPrice();
+                    } else {
+                        shouldSwap = item1.getPrice() < item2.getPrice();
+                    }
+                } // 2. Sort by NAME (Required for Binary Search)
+                else if (criteria.equalsIgnoreCase("name")) {
+                    int compare = item1.getName().compareToIgnoreCase(item2.getName());
+                    shouldSwap = isAscending ? (compare > 0) : (compare < 0);
+                } // 3. Sort by CATEGORY (Required for Binary Search)
+                else if (criteria.equalsIgnoreCase("category")) {
+                    int compare = item1.getCategory().compareToIgnoreCase(item2.getCategory());
+                    shouldSwap = isAscending ? (compare > 0) : (compare < 0);
+                }
+
+                // SWAP Logic
+                if (shouldSwap) {
+                    clothList.set(j, item2);
+                    clothList.set(j + 1, item1);
+                }
+            }
+        }
+    }
+
+    public java.util.ArrayList<ItemModel> binarySearch(String searchValue, String criteria) {
+        java.util.ArrayList<ItemModel> foundItems = new java.util.ArrayList<>();
+
+        int low = 0;
+        int high = clothList.size() - 1;
+
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            ItemModel midItem = clothList.get(mid);
+
+            // Determine what we are comparing
+            String midValue = criteria.equalsIgnoreCase("name") ? midItem.getName() : midItem.getCategory();
+
+            int compare = midValue.compareToIgnoreCase(searchValue);
+
+            if (compare == 0) {
+                // FOUND!
+                foundItems.add(midItem);
+
+                // Binary search finds one item. We must check neighbors for duplicates.
+                // Check Left
+                int left = mid - 1;
+                while (left >= 0) {
+                    ItemModel lItem = clothList.get(left);
+                    String lVal = criteria.equalsIgnoreCase("name") ? lItem.getName() : lItem.getCategory();
+                    if (lVal.equalsIgnoreCase(searchValue)) {
+                        foundItems.add(lItem);
+                        left--;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Check Right
+                int right = mid + 1;
+                while (right < clothList.size()) {
+                    ItemModel rItem = clothList.get(right);
+                    String rVal = criteria.equalsIgnoreCase("name") ? rItem.getName() : rItem.getCategory();
+                    if (rVal.equalsIgnoreCase(searchValue)) {
+                        foundItems.add(rItem);
+                        right++;
+                    } else {
+                        break;
+                    }
+                }
+                return foundItems; // Return all matches
+            }
+
+            if (compare < 0) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return foundItems; // Not found
+    }
+
+    public java.util.ArrayList<ItemModel> performSearch(String query) {
+        java.util.ArrayList<ItemModel> finalResults = new java.util.ArrayList<>();
+        java.util.ArrayList<Integer> addedIds = new java.util.ArrayList<>();
+
+        // 1. Search by NAME
+        bubbleSort("name", true); // Sort first
+        java.util.ArrayList<ItemModel> nameMatches = binarySearch(query, "name");
+
+        for (ItemModel item : nameMatches) {
+            finalResults.add(item);
+            addedIds.add(item.getItemId());
+        }
+
+        // 2. Search by CATEGORY
+        bubbleSort("category", true); // Sort first
+        java.util.ArrayList<ItemModel> catMatches = binarySearch(query, "category");
+
+        for (ItemModel item : catMatches) {
+            // Avoid duplicates
+            if (!addedIds.contains(item.getItemId())) {
+                finalResults.add(item);
+            }
+        }
+
+        return finalResults;
+    }
 }

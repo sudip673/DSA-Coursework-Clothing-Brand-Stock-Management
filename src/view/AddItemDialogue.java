@@ -80,6 +80,7 @@ public class AddItemDialogue extends javax.swing.JDialog {
         jToggleButton2 = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setMinimumSize(new java.awt.Dimension(830, 300));
         getContentPane().setLayout(null);
 
         jPanel1.setBackground(new java.awt.Color(51, 51, 51));
